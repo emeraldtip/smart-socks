@@ -1,8 +1,11 @@
 #include <Arduino.h>
 #include <WiFi.h>
 #include <ESPmDNS.h>
-#include <ESPAsyncWebServer.h>
 #include "secrets.h"
+#include <WifiServer.h>
+#include <ArduinoJson.hpp>
+
+using namespace ArduinoJson;
 
 void init_wifi() {
   WiFi.mode(WIFI_MODE_STA);
@@ -22,16 +25,10 @@ void init_wifi() {
   }
 }
 
-static AsyncWebServer server(80);
-
 JsonDocument result;
-std::string text;
+WiFiServer server(80);
 
 void init_site() {
-  server.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
-
-    request->send(200, "text/html", (const uint8_t *)text.data(), text.size());
-  });
   server.begin();
 }
 
@@ -53,8 +50,8 @@ void loop() {
   int ball = analogRead(A9);
   result["heel"] = heel;
   result["ball"] = ball;
-  serializeJson(result, text);
-/*   int spaces = value / 52;
+  serializeJson(result, server);
+  /*   int spaces = value / 52;
 
   for (int i = 0; i<spaces; i++) {
     Serial.print(" ");
