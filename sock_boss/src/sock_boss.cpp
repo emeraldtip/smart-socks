@@ -25,12 +25,12 @@ void init_wifi() {
 static AsyncWebServer server(80);
 
 JsonDocument result;
-std::string text;
 
 void init_site() {
   server.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
-
-    request->send(200, "text/html", (const uint8_t *)text.data(), text.size());
+    AsyncResponseStream* responseStream = request->beginResponseStream("application/json");
+    serializeJson(result, *responseStream);
+    request->send(responseStream);
   });
   server.begin();
 }
@@ -53,7 +53,6 @@ void loop() {
   int ball = analogRead(A9);
   result["heel"] = heel;
   result["ball"] = ball;
-  serializeJson(result, text);
 /*   int spaces = value / 52;
 
   for (int i = 0; i<spaces; i++) {
