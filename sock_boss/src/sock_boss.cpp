@@ -2,18 +2,16 @@
 #include <WiFi.h>
 #include <ESPmDNS.h>
 #include <ESPAsyncWebServer.h>
+
 #include "secrets.h"
 
 void init_wifi() {
-  WiFi.mode(WIFI_MODE_STA);
-  WiFi.begin(wifi_ssid, wifi_pass);
-  Serial.print("Establishing wifi...");
-  WiFi.setHostname("sock_boss");
-  while (WiFi.status()!=WL_CONNECTED) {
-    delay(500);
-    Serial.print('.');
-  }
-  
+/*  WiFi.mode(WIFI_MODE_STA);
+  WiFi.begin(wifi_ssid, wifi_pass);*/
+  WiFi.mode(WIFI_MODE_APSTA);
+  WiFi.softAP("sock_boss", "smartsocks",6);
+  WiFi.softAPConfig(IPAddress(192, 168, 4, 1), IPAddress(192, 168, 4, 1), IPAddress(255, 255, 255, 0));
+  Serial.println(WiFi.macAddress());
   Serial.println("");
   bool success = MDNS.begin("sock_boss");
   MDNS.addService("_http", "_tcp", 80);
@@ -27,10 +25,19 @@ static AsyncWebServer server(80);
 JsonDocument result;
 
 void init_site() {
+  DefaultHeaders::Instance().addHeader("Access-Control-Allow-Origin", "*");
   server.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
     AsyncResponseStream* responseStream = request->beginResponseStream("application/json");
     serializeJson(result, *responseStream);
     request->send(responseStream);
+  });
+  // maybe more cors stuff
+  server.onNotFound([](AsyncWebServerRequest *request){
+    if (request->method() == HTTP_OPTIONS) {
+      request->send(200);
+    } else {
+      request->send(404);
+    }
   });
   server.begin();
 }
@@ -49,10 +56,10 @@ void setup() {
 }
 
 void loop() {
-  int heel = analogRead(A10);
-  int ball = analogRead(A9);
-  result["heel"] = heel;
-  result["ball"] = ball;
+  int heel1 = analogRead(A10);
+  int ball1 = analogRead(A9);
+  result["heel1"] = heel1;
+  result["ball1"] = ball1;
   result["time"] = millis();
 /*   int spaces = value / 52;
 
@@ -61,5 +68,5 @@ void loop() {
   }
   Serial.println(value); */
 
-  delay(200);
+  delay(100);
 }
