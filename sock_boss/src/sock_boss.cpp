@@ -53,6 +53,7 @@ void loop() {
   int ball = analogRead(A9);
   result["heel"] = heel;
   result["ball"] = ball;
+  result["time"] = millis();
 /*   int spaces = value / 52;
 
   for (int i = 0; i<spaces; i++) {
