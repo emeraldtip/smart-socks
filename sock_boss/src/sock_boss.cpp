@@ -8,12 +8,12 @@ void init_wifi() {
   WiFi.mode(WIFI_MODE_STA);
   WiFi.begin(wifi_ssid, wifi_pass);
   Serial.print("Establishing wifi...");
-  
+  WiFi.setHostname("sock_boss");
   while (WiFi.status()!=WL_CONNECTED) {
     delay(500);
     Serial.print('.');
   }
-  WiFi.setHostname("sock_boss");
+  
   Serial.println("");
   bool success = MDNS.begin("sock_boss");
   MDNS.addService("_http", "_tcp", 80);
@@ -23,24 +23,16 @@ void init_wifi() {
 }
 
 static AsyncWebServer server(80);
-static AsyncWebSocketMessageHandler wsHandler;
-static AsyncWebSocket ws("/ws", wsHandler.eventHandler());
 
-void init_ws() {
-  wsHandler.onConnect([](AsyncWebSocket* server, AsyncWebSocketClient* client) {
-    Serial.println("Client connected");
+JsonDocument result;
+std::string text;
+
+void init_site() {
+  server.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
+
+    request->send(200, "text/html", (const uint8_t *)text.data(), text.size());
   });
-  wsHandler.onDisconnect([](AsyncWebSocket* server, uint32_t client_id) {
-    Serial.println("Client disconnected");
-  });
-  server.addHandler(&ws);
   server.begin();
-}
-
-void send(const JsonDocument& doc) {
-  auto buf = std::make_shared<std::vector<uint8_t>>(measureJson(doc));
-  serializeJson(doc, buf->data(), buf->size());
-  ws.textAll(buf);
 }
 
 //Mac of boss is D0:CF:13:27:F0:AC
@@ -53,17 +45,15 @@ void setup() {
     delay(500);
   }
   init_wifi();
-  init_ws();
+  init_site();
 }
 
 void loop() {
-  Serial.println("Hi");
   int heel = analogRead(A10);
   int ball = analogRead(A9);
-  JsonDocument result;
   result["heel"] = heel;
   result["ball"] = ball;
-  send(result);
+  serializeJson(result, text);
 /*   int spaces = value / 52;
 
   for (int i = 0; i<spaces; i++) {
@@ -71,5 +61,5 @@ void loop() {
   }
   Serial.println(value); */
 
-  delay(100);
+  delay(200);
 }
