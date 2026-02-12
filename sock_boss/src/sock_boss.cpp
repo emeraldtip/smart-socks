@@ -31,6 +31,13 @@ void init_site() {
     serializeJson(result, *responseStream);
     request->send(responseStream);
   });
+  server.on("/update", HTTP_POST, [](AsyncWebServerRequest *request) {}, nullptr, [](AsyncWebServerRequest *request, uint8_t* data, size_t len, size_t index, size_t total) {
+    Serial.println(len);
+    if (len == 8) {
+      Serial.println(*(int*)data);
+      Serial.println(*(int*)(data+4));
+    }
+  });
   // maybe more cors stuff
   server.onNotFound([](AsyncWebServerRequest *request){
     if (request->method() == HTTP_OPTIONS) {

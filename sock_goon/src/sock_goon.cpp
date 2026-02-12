@@ -33,12 +33,18 @@ void setup() {
 }
 
 void send(int ball, int heel) {
-  
+  client.println("POST /update HTTP/1.1");
+  client.println("Host: 192.168.4.1");
+  client.println("Content-Type: application/octet-stream");
+  client.println("Content-Length: 8");
+  client.println();
+  client.write((const uint8_t*)&ball, 4);
+  client.write((const uint8_t*)&heel, 4);
 }
 
 void loop() {
-  int ball = analogRead(A10);
-  int heel = analogRead(A9);
+  int heel = analogRead(A10);
+  int ball = analogRead(A9);
   int spaces = heel / 52;
 
   for (int i = 0; i<spaces; i++) {
@@ -46,7 +52,7 @@ void loop() {
   }
   Serial.println(heel);
   
-  send(ball, heel);
+  send(heel, ball);
   
   delay(1000);
 }
