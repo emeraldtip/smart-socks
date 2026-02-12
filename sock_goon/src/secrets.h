@@ -1,2 +1,2 @@
 #define wifi_ssid "your-ssid"
-#define wifi_pass "your-passwordddd"
+#define wifi_pass "your-passworded"
