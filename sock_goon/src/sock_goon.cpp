@@ -1,5 +1,6 @@
 #include "Arduino.h"
 #include "WiFi.h"
+#include "secrets.h"
 
 //Mac of goon is 
 void setup() {
