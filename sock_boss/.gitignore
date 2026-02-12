@@ -1,3 +1,5 @@
 .pio
 .cache
 secrets.h
+.vscode
+compile_commands.json
