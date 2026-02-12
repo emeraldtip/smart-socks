@@ -1,7 +1,7 @@
 #include "Arduino.h"
 #include "WiFi.h"
 
-//Mac of host is D0:CF:13:27:F0:AC
+//Mac of boss is D0:CF:13:27:F0:AC
 void setup() {
   pinMode(A10,INPUT);
   analogSetAttenuation(ADC_11db);
