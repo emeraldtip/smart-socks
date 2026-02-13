@@ -128,9 +128,9 @@ async function updateData() {
     const result = await sendPoll();
     const timestamp = result["time"] / 1000;
     addData(chartB1,timestamp,result["ball1"]);
-    addData(chartB2,timestamp,Math.random());
+    addData(chartB2,timestamp,result["ball2"]);
     addData(chartH1,timestamp,result["heel1"]);
-    addData(chartH2,timestamp,Math.random());
+    addData(chartH2,timestamp,result["heel2"]);
 }
 
 var updater = window.setInterval(updateData, 100);

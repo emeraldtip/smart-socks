@@ -35,8 +35,11 @@ void init_site() {
     Serial.println(len);
     if (len == 8) {
       Serial.println(*(int*)data);
+      result["ball2"] = *(int*)data;
       Serial.println(*(int*)(data+4));
+      result["heel2"] = *(int*)(data+4);
     }
+    request->send(200);
   });
   // maybe more cors stuff
   server.onNotFound([](AsyncWebServerRequest *request){
@@ -52,19 +55,19 @@ void init_site() {
 //Mac of boss is D0:CF:13:27:F0:AC
 void setup() {
   pinMode(A10,INPUT);
-  pinMode(A9,INPUT);
+  pinMode(A5,INPUT);
   analogSetAttenuation(ADC_11db);
   Serial.begin(115200);
-  while (!Serial.available()) {
-    delay(500);
-  }
+  //while (!Serial.available()) {
+  //  delay(500);
+  //}
   init_wifi();
   init_site();
 }
 
 void loop() {
   int heel1 = analogRead(A10);
-  int ball1 = analogRead(A9);
+  int ball1 = analogRead(A5);
   result["heel1"] = heel1;
   result["ball1"] = ball1;
   result["time"] = millis();
