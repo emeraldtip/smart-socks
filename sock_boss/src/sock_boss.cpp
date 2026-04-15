@@ -62,6 +62,7 @@ void setup() {
   pinMode(heel1,INPUT);
   pinMode(ball1,INPUT);
   pinMode(balli1,INPUT);
+  pinMode(21,OUTPUT); //LED
   analogSetAttenuation(ADC_11db);
   Serial.begin(115200);
   //while (!Serial.available()) {
@@ -71,6 +72,7 @@ void setup() {
   init_site();
 }
 
+bool blinker = false;
 void loop() {
   int heel = analogRead(heel1);
   int ball = analogRead(ball1);
@@ -79,7 +81,8 @@ void loop() {
   result["ball11"] = ball;
   result["ball12"] = balli;
   result["time"] = millis();
-  Serial.println(
+  blinker = !blinker;
+  digitalWrite(21,blinker); //blinky the led to indicate board is alive
 /*   int spaces = value / 52;
 
   for (int i = 0; i<spaces; i++) {
