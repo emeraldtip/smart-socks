@@ -34,11 +34,13 @@ void init_site() {
   });
   server.on("/update", HTTP_POST, [](AsyncWebServerRequest *request) {}, nullptr, [](AsyncWebServerRequest *request, uint8_t* data, size_t len, size_t index, size_t total) {
     Serial.println(len);
-    if (len == 8) {
+    if (len == 12) {
       Serial.println(*(int*)data);
-      result["ball2"] = *(int*)data;
+      result["heel2"] = *(int*)data;
       Serial.println(*(int*)(data+4));
-      result["heel2"] = *(int*)(data+4);
+      result["ball21"] = *(int*)(data+4);
+      Serial.println(*(int*)(data+8));
+      result["ball22"] = *(int*)(data+8);
     }
     request->send(200);
   });
