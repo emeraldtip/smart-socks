@@ -9,6 +9,7 @@ void init_wifi() {
 /*  WiFi.mode(WIFI_MODE_STA);
   WiFi.begin(wifi_ssid, wifi_pass);*/
   WiFi.mode(WIFI_MODE_APSTA);
+  WiFi.setSleep(false);
   WiFi.softAP("sock_boss", "smartsocks",6);
   WiFi.softAPConfig(IPAddress(192, 168, 4, 1), IPAddress(192, 168, 4, 1), IPAddress(255, 255, 255, 0));
   Serial.println(WiFi.macAddress());
@@ -52,25 +53,33 @@ void init_site() {
   server.begin();
 }
 
+#define heel1 A8 //Heel sensor, number 5 - yellow
+#define ball1 A0 //Ball sensor, number 1 - orange
+#define balli1 A3 //Ball sensor, number 2 - blue
+
 //Mac of boss is D0:CF:13:27:F0:AC
 void setup() {
-  pinMode(A10,INPUT);
-  pinMode(A5,INPUT);
+  pinMode(heel1,INPUT);
+  pinMode(ball1,INPUT);
+  pinMode(balli1,INPUT);
   analogSetAttenuation(ADC_11db);
   Serial.begin(115200);
   //while (!Serial.available()) {
-  //  delay(500);
+  delay(1000);
   //}
   init_wifi();
   init_site();
 }
 
 void loop() {
-  int heel1 = analogRead(A10);
-  int ball1 = analogRead(A5);
-  result["heel1"] = heel1;
-  result["ball1"] = ball1;
+  int heel = analogRead(heel1);
+  int ball = analogRead(ball1);
+  int balli = analogRead(balli1);
+  result["heel1"] = heel;
+  result["ball11"] = ball;
+  result["ball12"] = balli;
   result["time"] = millis();
+  Serial.println(
 /*   int spaces = value / 52;
 
   for (int i = 0; i<spaces; i++) {
