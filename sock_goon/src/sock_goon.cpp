@@ -43,17 +43,22 @@ void send(int ball, int heel) {
   client.write((const uint8_t*)&heel, 4);
 }
 
+bool blinker = false;
 void loop() {
-  int heel = analogRead(A10);
-  int ball = analogRead(A9);
-  int spaces = heel / 52;
+  int heel = analogRead(heel1);
+  int ball = analogRead(ball1);
+  int balli = analogRead(balli1);
+  result["heel1"] = heel;
+  result["ball11"] = ball;
+  result["ball12"] = balli;
 
-  for (int i = 0; i<spaces; i++) {
-    Serial.print(" ");
-  }
-  Serial.println(heel);
+  //for (int i = 0; i<spaces; i++) {
+  //  Serial.print(" ");
+  //}
+  //Serial.println(heel);
   
   send(heel, ball);
-  
+  blinker = !blinker;
+  digitalWrite(21,blinker); //blinky the led to indicate board is alive
   delay(100);
 }
