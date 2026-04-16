@@ -43,7 +43,7 @@ void send(int heel, int ball, int balli) {
   client.println("POST /update HTTP/1.1");
   client.println("Host: 192.168.4.1");
   client.println("Content-Type: application/octet-stream");
-  client.println("Content-Length: 8");
+  client.println("Content-Length: 12");
   client.println("Connection: keep-alive");
   client.println();
   client.write((const uint8_t*)&heel, 4);

@@ -23,10 +23,10 @@ datasets: [{
 }]
 };
 
-const dataB1 = {
+const dataB11 = {
 labels: [],
 datasets: [{
-  label: 'Ball 1',
+  label: 'Ball 1 1',
   data: [],
   fill: false,
   borderColor: 'rgb(75, 192, 192)',
@@ -34,10 +34,32 @@ datasets: [{
 }]
 };
 
-const dataB2 = {
+const dataB21 = {
 labels: [],
 datasets: [{
-  label: 'Ball 2',
+  label: 'Ball 2 1',
+  data: [],
+  fill: false,
+  borderColor: 'rgb(75, 192, 192)',
+  tension: 0
+}]
+};
+
+const dataB12 = {
+labels: [],
+datasets: [{
+  label: 'Ball 1 2',
+  data: [],
+  fill: false,
+  borderColor: 'rgb(75, 192, 192)',
+  tension: 0
+}]
+};
+
+const dataB22 = {
+labels: [],
+datasets: [{
+  label: 'Ball 2 2',
   data: [],
   fill: false,
   borderColor: 'rgb(75, 192, 192)',
@@ -71,10 +93,15 @@ const chartH1 = new Chart(ctx, {type: "line", data:dataH1, options: settings});
 const ctx2 = document.getElementById("Heel2");
 const chartH2 = new Chart(ctx2, {type: "line", data:dataH2, options: settings});
 
-const ctx3 = document.getElementById("Ball1");
-const chartB1 = new Chart(ctx3, {type: "line", data:dataB1, options: settings});
-const ctx4 = document.getElementById("Ball2");
-const chartB2 = new Chart(ctx4, {type: "line", data:dataB2, options: settings});
+const ctx3 = document.getElementById("Ball11");
+const chartB11 = new Chart(ctx3, {type: "line", data:dataB11, options: settings});
+const ctx4 = document.getElementById("Ball21");
+const chartB21 = new Chart(ctx4, {type: "line", data:dataB21, options: settings});
+
+const ctx5 = document.getElementById("Ball12");
+const chartB12 = new Chart(ctx5, {type: "line", data:dataB12, options: settings});
+const ctx6 = document.getElementById("Ball22");
+const chartB22 = new Chart(ctx6, {type: "line", data:dataB22, options: settings});
 
 const boss_socket = new WebSocket("ws://sock_boss.local:80/ws");
 
@@ -127,10 +154,12 @@ async function sendPoll() {
 async function updateData() {
     const result = await sendPoll();
     const timestamp = result["time"] / 1000;
-    addData(chartB1,timestamp,result["ball11"]);
-    addData(chartB2,timestamp,result["heel2"]);
     addData(chartH1,timestamp,result["heel1"]);
-    addData(chartH2,timestamp,result["ball12"]);
+    addData(chartH2,timestamp,result["heel2"]);
+    addData(chartB11,timestamp,result["ball11"]);
+    addData(chartB21,timestamp,result["ball21"]);
+    addData(chartB12,timestamp,result["ball12"]);
+    addData(chartB22,timestamp,result["ball22"]);
 }
 
 var updater = window.setInterval(updateData, 100);
