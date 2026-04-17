@@ -23,7 +23,8 @@ def webserver():
     last_delta = 1
     step = 0
     
-    standing = 0
+    standingsum = 0
+    sittingsum = 0
     sitting = 0
     rightlegup = 0 #sock 1 up
     leftlegup = 0 #sock 2 up
@@ -103,9 +104,10 @@ def webserver():
             elif calibration_step == 1:
                 print("Please sit for 3 seconds and then press CTRL+C to calibrate.")
                 sitting = delta
+                sittingsum = summer
             elif calibration_step == 2:
                 print("Please sit crossleg with right leg up for 3 seconds and then press CTRL+C to calibrate.")
-                standing = delta
+                standingsum = summer
             elif calibration_step == 3:
                 print("Please sit crossleg with left leg up for 3 seconds and then press CTRL+C to calibrate.")
             if calibration_step < CALIBRATION_STEPS:
