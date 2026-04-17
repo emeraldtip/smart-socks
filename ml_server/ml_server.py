@@ -64,7 +64,19 @@ def webserver():
                 if len(state_window)>5: state_window.pop(0)
                 most_occuring = max(set(state_window), key=state_window.count)
                 
-                if keys[-1] == "sitting":
+                
+                state_fin = most_occuring
+                if state_fin == "sitting":
+                    if summer>standingsum-abs(standingsum-sittingsum)/2:
+                        state_fin = "standing"
+                        
+                elif state_fin == "standing":
+                    if summer<standingsum-abs(standingsum-sittingsum)/2:
+                        state_fin = "sitting"
+                
+                
+                
+                if state_fin == "sitting":
                     if sorted_output[keys[-1]]>0.65:
                         sittimer = time.time()
                     if delta<rightlegup+(abs(rightlegup-sitting))*0.6:
@@ -72,18 +84,13 @@ def webserver():
                     if delta>leftlegup-(abs(leftlegup-sitting))*0.4:
                         cross_legged = True
                 
-                if most_occuring == "standing":
+                if state_fin == "standing":
                     if sorted_output[keys[-1]]>0.6:
                         if prevwindow == "sitting":
                             last_sit_to_stand = time.time()-sittimer
                 
-                state_fin = most_occuring
-                if state_fin == "sitting":
-                    if summer>standing-abs(standing-sitting)/2:
-                        state_fin = standing
-                elif state_fin == "standing":
-                    if summer<standing-abs(standing-sitting)/2:
-                        state_fin = sitting
+                
+                
                 
                 if keys[-1] == "walking" or keys[-1] == "stairs":
                     if delta<0 and last_delta>=0:
@@ -109,18 +116,15 @@ def webserver():
                         #calibration wise - calibrate standing weight, calibrate sitting weight
             elif calibration_step == 0:
                 print("Please stand for 3 seconds and then press CTRL+C to calibrate.")
-                
             elif calibration_step == 1:
                 print("Please sit for 3 seconds and then press CTRL+C to calibrate.")
-                sitting = delta
-                sittingsum = summer
             elif calibration_step == 2:
                 print("Please sit crossleg with right leg up for 3 seconds and then press CTRL+C to calibrate.")
-                standingsum = summer
             elif calibration_step == 3:
                 print("Please sit crossleg with left leg up for 3 seconds and then press CTRL+C to calibrate.")
             if calibration_step < CALIBRATION_STEPS:
                 print("Delta: ",delta)
+                print("Sum: ",summer)
             time.sleep(1 / SAMPLE_RATE)
         except KeyboardInterrupt as e:
             if calibration_step >= CALIBRATION_STEPS:
@@ -133,9 +137,10 @@ def webserver():
                     raise e
                 calibration_step = 0
             elif calibration_step == 0:
-                standing = delta
+                standingsum = summer
                 calibration_step+=1
             elif calibration_step == 1:
+                sittingsum = summer
                 sitting = delta
                 calibration_step+=1
             elif calibration_step == 2:
