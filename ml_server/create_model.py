@@ -5,13 +5,14 @@ import pandas as pd
 import os
 import itertools
 
-def create_model(dataset_path: str):
+def create_model(dataset_path: str, test=False):
     inputs = []
     outputs = []
     subjects = []
     output_mapping = {}
     n_activities = 0
-    for subject_idx, subject in enumerate(os.listdir(dataset_path)):
+    subject_set = os.listdir(dataset_path);
+    for subject_idx, subject in enumerate(subject_set):
         subject_path = os.path.join(dataset_path, subject)
         full_subject = pd.DataFrame()
         raw_subject_inputs = {}
@@ -42,7 +43,25 @@ def create_model(dataset_path: str):
                     subjects.append(subject_idx)
     # uncal_clf = sklearn.svm.LinearSVC();
     # uncal_clf = sklearn.gaussian_process.GaussianProcessClassifier()
-    uncal_clf = sklearn.svm.SVC(class_weight="balanced")
-    clf = sklearn.calibration.CalibratedClassifierCV(uncal_clf)
-    clf.fit(inputs, outputs)
-    return list(output_mapping.keys()), (lambda windows: dict(zip(output_mapping, *clf.predict_proba(windows).tolist())))
+    if not test:
+        uncal_clf = sklearn.svm.SVC(class_weight="balanced")
+        clf = sklearn.calibration.CalibratedClassifierCV(uncal_clf)
+        clf.fit(inputs, outputs)
+        return list(output_mapping.keys()), (lambda windows: dict(zip(output_mapping, *clf.predict_proba(windows).tolist())))
+    logo = sklearn.model_selection.LeaveOneGroupOut();
+    outputs_true = []
+    outputs_test = []
+    for i, (train_idxs, test_idxs) in enumerate(logo.split(inputs, outputs, subjects)):
+        print(f"Fold {i}")
+        uncal_clf = sklearn.svm.SVC(class_weight="balanced")
+        clf = sklearn.calibration.CalibratedClassifierCV(uncal_clf)    
+        clf.fit([inputs[i] for i in train_idxs], [outputs[i] for i in train_idxs])
+        outputs_test += list(clf.predict([inputs[i] for i in test_idxs]))
+        outputs_true += [outputs[i] for i in test_idxs]
+        print(outputs_test, outputs_true)
+    labels = list(output_mapping.keys())
+    cmat = sklearn.metrics.confusion_matrix(outputs_true, outputs_test, labels=labels)
+    disp = sklearn.metrics.ConfusionMatrixDisplay(cmat, display_labels=labels)
+    disp.show()
+if __name__=="__main__":
+    create_model("../datasets", True);
