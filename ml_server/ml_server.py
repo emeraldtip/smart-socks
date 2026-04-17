@@ -64,7 +64,7 @@ def webserver():
                 if len(state_window)>5: state_window.pop(0)
                 most_occuring = max(set(state_window), key=state_window.count)
                 
-                if keys[-1] == "sitting_normal":
+                if keys[-1] == "sitting":
                     if sorted_output[keys[-1]]>0.65:
                         sittimer = time.time()
                     if delta<rightlegup+(abs(rightlegup-sitting))*0.6:
@@ -74,8 +74,16 @@ def webserver():
                 
                 if most_occuring == "standing":
                     if sorted_output[keys[-1]]>0.6:
-                        if prevwindow == "sitting_normal":
+                        if prevwindow == "sitting":
                             last_sit_to_stand = time.time()-sittimer
+                
+                state_fin = most_occuring
+                if state_fin == "sitting":
+                    if summer>standing-abs(standing-sitting)/2:
+                        state_fin = standing
+                elif state_fin == "standing":
+                    if summer<standing-abs(standing-sitting)/2:
+                        state_fin = sitting
                 
                 if keys[-1] == "walking" or keys[-1] == "stairs":
                     if delta<0 and last_delta>=0:
@@ -89,6 +97,7 @@ def webserver():
                 print("Cross-legged:",cross_legged, int(delta))
                 print("Prev-sitstand",last_sit_to_stand)
                 print("Windowed-stat", most_occuring)
+                print("Decided-state",state_fin)
                 print("Steps",step)
                 print()
                 
@@ -115,7 +124,8 @@ def webserver():
             time.sleep(1 / SAMPLE_RATE)
         except KeyboardInterrupt as e:
             if calibration_step >= CALIBRATION_STEPS:
-                print("Standing:",standing)
+                print("Standingsum:",standingsum)
+                print("Sittingsum:",sittingsum)
                 print("Sitting:",sitting)
                 print("Right-up:",rightlegup)
                 print("Left-up:",leftlegup)
