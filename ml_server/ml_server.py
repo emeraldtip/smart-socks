@@ -78,6 +78,12 @@ def webserver():
                             last_sit_to_stand = time.time()-sittimer
                 
                 state_fin = most_occuring
+                if state_fin == "sitting":
+                    if summer>standing-abs(standing-sitting)/2:
+                        state_fin = standing
+                elif state_fin == "standing":
+                    if summer<standing-abs(standing-sitting)/2:
+                        state_fin = sitting
                 
                 if keys[-1] == "walking" or keys[-1] == "stairs":
                     if delta<0 and last_delta>=0:
