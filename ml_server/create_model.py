@@ -18,8 +18,10 @@ def create_model(dataset_path: str, test=False):
     subject_set = os.listdir(dataset_path);
     for subject_idx, subject in enumerate(subject_set):
         subject_path = os.path.join(dataset_path, subject)
-        calibration = pd.read_csv(os.path.join(subject_path, "calibration.csv"),index_col=0).squeeze()
-        full_subject = pd.DataFrame()
+        # calibration = pd.read_csv(os.path.join(subject_path, "calibration.csv"),index_col=0).squeeze()
+        sum1 = 0.0
+        sum2 = 0.0
+        n_sums = 0
         raw_subject_inputs = {}
         # subject_max = None
         for activity in os.listdir(subject_path):
@@ -36,20 +38,24 @@ def create_model(dataset_path: str, test=False):
                 # ensures columns are in order and only selects wanted columns for ml_inputs
                 df = pd.read_csv(os.path.join(activity_path, file))[ingestion.input_cols].dropna()
                 ingestion.linearize(df)
-                df[["heel1", "ball11", "ball12"]] /= calibration["sum1"]
-                df[["heel2", "ball21", "ball22"]] /= calibration["sum2"]
                 raw_subject_inputs[activity_idx].append(df)
-                df_max = df.max(axis=0)
-                # subject_max = df_max if subject_max is None else df_max.combine(subject_max, max)
+                sum1 += df[["heel1", "ball11", "ball12"]].sum(axis=0).sum()
+                sum2 += df[["heel2", "ball21", "ball22"]].sum(axis=0).sum()
+                n_sums += len(df.columns)
+        if n_sums == 0:
+            sum1 = 1.0
+            sum2 = 1.0
+        else:
+            sum1 /= n_sums
+            sum2 /= n_sums
         for activity_idx, dfs in raw_subject_inputs.items():
             for df in dfs:
-                # df /= subject_max
+                df[["heel1", "ball11", "ball12"]] /= sum1
+                df[["heel2", "ball21", "ball22"]] /= sum2
                 for i in range(df.shape[0] + 1 - WINDOW_SIZE):
                     inputs.append(ingestion.ml_inputs(df.iloc[i : i + WINDOW_SIZE]))
                     outputs.append(activity_idx)
                     subjects.append(subject_idx)
-    # uncal_clf = sklearn.svm.LinearSVC();
-    # uncal_clf = sklearn.gaussian_process.GaussianProcessClassifier()
     if not test:
         clf = uninit_model()
         clf.fit(inputs, outputs)

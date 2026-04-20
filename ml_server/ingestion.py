@@ -141,7 +141,9 @@ def max_fft(s: np.ndarray):
     slope =  0
     if len(s)>1:
         slope,_ = np.polyfit(range(len(s)), s, 1)
-    return (freqs[i], abs_ffts[i], np.angle(ffts[i])/(2*np.pi*freqs[i]) if i != 0 else 0, mean, slope)
+    # These are roughly in the order in which we thought to give these. These are added via trial-and-error: if it helps, it's added; if it doesn't, it's removed.
+    # It does not feel very methodical but ML is in some ways a black box that picks and chooses what it finds useful.
+    return [freqs[i], abs_ffts[i], np.angle(ffts[i])/(2*np.pi*freqs[i]) if i != 0 else 0, mean, slope, s.min(), s.max()] + s.tolist() + abs_ffts.tolist()
     
     
 fft_cols = ["heel1", "heel2", "ball11", "ball12", "ball21", "ball22"]
@@ -149,12 +151,10 @@ input_cols = fft_cols
 
 def ml_inputs(df: pd.DataFrame):
     subset = df[input_cols]
-    result = []
+    result = [subset.min(axis=0).min(), subset.max(axis=0).max()]
+    subset["sum1"] = subset[["heel1", "ball11", "ball12"]].sum(axis=1)
+    subset["sum2"] = subset[["heel2", "ball22", "ball22"]].sum(axis=1)
+    subset["delta"] = (subset["sum1"] - subset["sum2"]).abs()
     for col in subset.columns:
-        res = max_fft(subset[col].values)
-        result.append(res[0]) # freq
-        result.append(res[1]) # mag
-        result.append(res[2]) # angle
-        result.append(res[3]) # mean
-        result.append(res[4]) # slope
+        result += max_fft(subset[col].values)
     return result
