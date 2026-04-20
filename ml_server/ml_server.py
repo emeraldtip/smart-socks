@@ -60,12 +60,18 @@ def webserver():
                 keys = list(sorted_output.keys())
                 cross_legged = False
                 
+                
+                
                 state_window.append(keys[-1])
                 if len(state_window)>5: state_window.pop(0)
                 most_occuring = max(set(state_window), key=state_window.count)
+                               
                 
                 
                 state_fin = most_occuring
+                if sorted_output[keys[-1]] < 0.5:
+                    state_fin = "unknown"
+                    
                 if state_fin == "sitting":
                     if summer>standingsum-abs(standingsum-sittingsum)/2:
                         state_fin = "standing"
