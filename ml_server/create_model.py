@@ -5,9 +5,22 @@ import pandas as pd
 import os
 import itertools
 import matplotlib.pyplot as plt
+from concurrent.futures import ProcessPoolExecutor
 
-def uninit_model():
-    return sklearn.calibration.CalibratedClassifierCV(sklearn.ensemble.RandomForestClassifier(class_weight="balanced"))
+def process_subject(subject_idx, activity_idx, df, sum1, sum2):
+    inputs = []
+    outputs = []
+    subjects = []
+    df[["heel1", "ball11", "ball12"]] /= sum1
+    df[["heel2", "ball21", "ball22"]] /= sum2
+    for i in range(df.shape[0] + 1 - WINDOW_SIZE):
+        inputs.append(ingestion.ml_inputs(df.iloc[i : i + WINDOW_SIZE]))
+        outputs.append(activity_idx)
+        subjects.append(subject_idx)
+    return inputs, outputs, subjects
+
+def _uninit_model():
+    return sklearn.calibration.CalibratedClassifierCV(sklearn.ensemble.RandomForestClassifier(class_weight="balanced", random_state=42, n_jobs=-1))
 
 def create_model(dataset_path: str, test=False):
     inputs = []
@@ -15,15 +28,15 @@ def create_model(dataset_path: str, test=False):
     subjects = []
     output_mapping = {}
     n_activities = 0
-    subject_set = os.listdir(dataset_path);
+    subject_set = os.listdir(dataset_path)
+    executor = ProcessPoolExecutor()
+    futures = []
     for subject_idx, subject in enumerate(subject_set):
         subject_path = os.path.join(dataset_path, subject)
-        # calibration = pd.read_csv(os.path.join(subject_path, "calibration.csv"),index_col=0).squeeze()
         sum1 = 0.0
         sum2 = 0.0
         n_sums = 0
         raw_subject_inputs = {}
-        # subject_max = None
         for activity in os.listdir(subject_path):
             activity_path = os.path.join(subject_path, activity)
             if not os.path.isdir(activity_path):
@@ -50,25 +63,27 @@ def create_model(dataset_path: str, test=False):
             sum2 /= n_sums
         for activity_idx, dfs in raw_subject_inputs.items():
             for df in dfs:
-                df[["heel1", "ball11", "ball12"]] /= sum1
-                df[["heel2", "ball21", "ball22"]] /= sum2
-                for i in range(df.shape[0] + 1 - WINDOW_SIZE):
-                    inputs.append(ingestion.ml_inputs(df.iloc[i : i + WINDOW_SIZE]))
-                    outputs.append(activity_idx)
-                    subjects.append(subject_idx)
+                futures.append(executor.submit(process_subject, subject_idx, activity_idx, df, sum1, sum2))
+    for future in futures:
+        input_part, output_part, subject_part = future.result()
+        inputs += input_part
+        outputs += output_part
+        subjects += subject_part
     if not test:
-        clf = uninit_model()
+        clf = _uninit_model()
         clf.fit(inputs, outputs)
         return list(output_mapping.keys()), (lambda windows: dict(zip(output_mapping, *clf.predict_proba(windows).tolist())))
     logo = sklearn.model_selection.LeaveOneGroupOut();
+    labels = list(output_mapping.keys())
     outputs_true = []
     outputs_test = []
     for i, (train_idxs, test_idxs) in enumerate(logo.split(inputs, outputs, subjects)):
         print(f"Fold {i}")
-        clf = uninit_model()
+        clf = _uninit_model()
         clf.fit([inputs[i] for i in train_idxs], [outputs[i] for i in train_idxs])
         outputs_test += list(clf.predict([inputs[i] for i in test_idxs]))
         outputs_true += [outputs[i] for i in test_idxs]
+    # outputs_test = list(itertools.chain.from_iterable(future.result() for future in futures))
     labels = list(output_mapping.keys())
     cmat = sklearn.metrics.confusion_matrix(outputs_true, outputs_test, labels=list(output_mapping.values()), normalize="pred")
     disp = sklearn.metrics.ConfusionMatrixDisplay(cmat, display_labels=labels)
