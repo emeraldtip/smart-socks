@@ -1,5 +1,4 @@
 import numpy as np
-from scipy.interpolate import CubicSpline
 import pandas as pd
 import requests
 import time
@@ -49,12 +48,10 @@ def webserver():
             delta = sum1-sum2
             
             if calibration_step == CALIBRATION_STEPS:
-                ml_result = model([ml_inputs(data)])
-                
-                #print(sum1)
-                #print(sum2)
-                #print(delta)
-                output = model([ml_inputs(data)])
+                normalized_data = data
+                normalized_data[["heel1", "ball11", "ball12"]] /= calibration_sum1
+                normalized_data[["heel2", "ball21", "ball22"]] /= calibration_sum2
+                output = model([ml_inputs(normalized_data)])
                 print("\n".join(f"{k:<{pad_len}}{v:.10f}" for k, v in output.items()), end="\n\n")
                 sorted_output = {k: v for k, v in sorted(output.items(), key=lambda item: item[1])}
                 keys = list(sorted_output.keys())
@@ -65,22 +62,11 @@ def webserver():
                 state_window.append(keys[-1])
                 if len(state_window)>5: state_window.pop(0)
                 most_occuring = max(set(state_window), key=state_window.count)
-                               
-                
+
                 
                 state_fin = most_occuring
                 if sorted_output[keys[-1]] < 0.5:
                     state_fin = "unknown"
-                    
-                if state_fin == "sitting":
-                    if summer>standingsum-abs(standingsum-sittingsum)/2:
-                        state_fin = "standing"
-                        
-                elif state_fin == "standing":
-                    if summer<standingsum-abs(standingsum-sittingsum)/2:
-                        state_fin = "sitting"
-                
-                
                 
                 if state_fin == "sitting":
                     if sorted_output[keys[-1]]>0.65:
@@ -144,6 +130,8 @@ def webserver():
                 calibration_step = 0
             elif calibration_step == 0:
                 standingsum = summer
+                calibration_sum1 = data[["heel1", "ball11", "ball12"]].sum(axis=1).mean()
+                calibration_sum2 = data[["heel2", "ball21", "ball22"]].sum(axis=1).mean()
                 calibration_step+=1
             elif calibration_step == 1:
                 sittingsum = summer
