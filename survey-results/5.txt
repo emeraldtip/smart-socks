@@ -1,0 +1,6 @@
+Emotion: 5
+Attachment: 3
+Harm: 0
+Perceived change: 10
+Movement: 12
+Anxiety: 12
